@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Form</title>
+
+    <!-- Add jQuery before your custom script -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>  <!-- jQuery CDN -->
+</head>
+<body>
+    <h2>Enter Your Medications</h2>
+    <form action="" method="POST">
+        <label for="userInput">Your Medication input:</label><br>
+        <textarea id="userInput" name="userInput" rows="5" cols="50" required></textarea><br><br>
+        <input type="button" value="Submit" onclick="submitMed()">
+    </form>
+    
+    <h3>Response</h3>
+    <textarea id="responseBox" rows="4" cols="50" readonly></textarea>
+
+    <script>
+        function submitMed() {
+            // Get the value from the input field
+            const medicationItem = document.getElementById('userInput').value;
+            
+            // Log the medication item
+            console.log(medicationItem);
+
+            // Clear the input field after submission
+            document.getElementById('userInput').value = '';
+
+            // Send the data to the backend using AJAX
+            $.ajax({
+                url: '{% url "submit_medication" %}',  
+                method: 'POST',
+                data: {
+                    'medication': medicationItem,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',  // CSRF token for security
+                },
+                success: function(response) {
+                    let medicationName = response['medication type'];
+                    let dosageAmount = response['dosage']['amount'];
+                    let dosageFrequency = response['dosage']['frequency'];
+                    document.getElementById("responseBox").innerHTML = `Correctly added ${dosageAmount} of ${medicationName} every ${dosageFrequency} hours` 
+         
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error:", error);  // Log the error if the request fails
+                }
+            });
+        }
+    </script>
+</body>
+</html>
