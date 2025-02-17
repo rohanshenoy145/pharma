@@ -17,7 +17,36 @@
     </form>
     
     <h3>Response</h3>
-    <textarea id="responseBox" rows="4" cols="50" readonly></textarea>
+    <div style="display: flex; gap: 10px;">
+        <div>
+            <label for="responseBox">Confirmation</label><br>
+            <textarea id="responseBox" rows="4" cols="50" readonly></textarea>
+        </div>
+        <div>
+            <label for="aboutBox">About The Medication</label><br>
+            <textarea id="aboutBox" rows="4" cols="50" readonly></textarea>
+        </div>
+    </div>
+
+    <h3>Your Medications</h3>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Medication Name</th>
+                <th>Dosage (mg)</th>
+                <th>Frequency (in hours)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for med in medications %}
+            <tr>
+                <td>{{med.medicationName}}</td>
+                <td>{{med.dosageAmount}}</td>
+                <td>{{med.dosageFrequency}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>    
 
     <script>
         function submitMed() {
@@ -25,7 +54,6 @@
             const medicationItem = document.getElementById('userInput').value;
             
             // Log the medication item
-            console.log(medicationItem);
 
             // Clear the input field after submission
             document.getElementById('userInput').value = '';
@@ -43,11 +71,34 @@
                     let dosageAmount = response['dosage']['amount'];
                     let dosageFrequency = response['dosage']['frequency'];
                     document.getElementById("responseBox").innerHTML = `Correctly added ${dosageAmount} of ${medicationName} every ${dosageFrequency} hours` 
+                    medInfo(medicationName)
+
          
                 },
                 error: function(xhr, status, error) {
                     console.error("Error:", error);  // Log the error if the request fails
                 }
+            });
+        }
+
+        function medInfo(medicationName){
+            $.ajax({
+                url: '{% url "medInfo" %}',
+                method: 'POST',
+                data:{
+                    'medicationName': medicationName,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',  // CSRF token for security
+                },
+                success: function(response){
+                    let results = response['results'];
+                    let purpose = results[0]['purpose'];
+                    document.getElementById("aboutBox").innerHTML = purpose;
+
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error:", error);  // Log the error if the request fails
+                }
+
             });
         }
     </script>

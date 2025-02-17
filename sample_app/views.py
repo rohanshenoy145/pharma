@@ -6,7 +6,7 @@ Copyright (c) 2019 - present AppSeed.us
 from django.shortcuts import render
 from django.template import loader
 from dotenv import load_dotenv
-
+import requests
 from django.http import HttpResponse
 from django import template
 from django.http import JsonResponse
@@ -22,7 +22,10 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # Create your views here.
 
 def homeAction(request):
-    return render (request,'home.html')
+    allMedications = Medication.objects.all()
+    context = {"medications": allMedications}
+
+    return render (request,'home.html',context)
 
 def submitMed(request):
     if request.method == 'POST':
@@ -41,7 +44,6 @@ def submitMed(request):
         try:
     # Convert string to JSON
             response_json = json.loads(response_data) 
-            print(response_json)
             medicationName = response_json['medication type']
 
             dosageAmountInfo = response_json['dosage']['amount'].split(' ')
@@ -56,6 +58,7 @@ def submitMed(request):
                             dosageFrequency = dosageFrequencyHours)
 
             newMedication.save()
+
         except json.JSONDecodeError:
             # If parsing fails, return the raw text in case of unexpected response format
             return JsonResponse({'error': 'Invalid JSON response', 'message': response_data}, status=500)
@@ -65,5 +68,34 @@ def submitMed(request):
     
     return JsonResponse({'message': 'Invalid request method.'}, status=400)
 #please add 50 mg of advil every 2 hours
+
+
+def medInfo(request):
+    print("rrrrr")
+    if request.method == 'POST':
+        print("here")
+
+        medicationName = request.POST['medicationName']
+        print(medicationName)
+        url = 'https://api.fda.gov/drug/label.json'
+        params = {  'search': f'openfda.brand_name:"{medicationName}"',  
+                    'limit': 1}  
+
+        response = requests.get(url,params=params)
+        if response.status_code == 200:
+            data = response.json()
+            
+            return JsonResponse(data)
+            
+
+
+        
+        else:
+            return JsonResponse({'error': 'Failed to retrieve data from OpenFDA'}, status=500)
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+
+
 
 

@@ -11,7 +11,8 @@ urlpatterns = [
     # Matches any html file
     path("admin/", admin.site.urls),
     path("",views.homeAction,name = "homeAction"),
-    path("submitMed/",views.submitMed,name = "submit_medication")
+    path("submitMed/",views.submitMed,name = "submit_medication"),
+    path("medInfo/",views.medInfo,name = "medInfo"),
     
 
 ]
