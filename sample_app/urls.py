@@ -13,6 +13,7 @@ urlpatterns = [
     path("",views.homeAction,name = "homeAction"),
     path("submitMed/",views.submitMed,name = "submit_medication"),
     path("medInfo/",views.medInfo,name = "medInfo"),
+    path("analyzeWarnings/",views.analyzeWarnings,name= 'analyzeWarnings'),
     
 
 ]

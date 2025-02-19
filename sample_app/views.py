@@ -71,9 +71,7 @@ def submitMed(request):
 
 
 def medInfo(request):
-    print("rrrrr")
     if request.method == 'POST':
-        print("here")
 
         medicationName = request.POST['medicationName']
         print(medicationName)
@@ -94,6 +92,53 @@ def medInfo(request):
             return JsonResponse({'error': 'Failed to retrieve data from OpenFDA'}, status=500)
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
+
+
+def analyzeWarnings(request):
+    print("here")
+    if request.method == 'POST':
+        allMedications = Medication.objects.all()
+        if len(allMedications) == 1:
+            response_json = {'results':"No warnings"}
+            return JsonResponse(response_json)
+
+        prevMedications = allMedications[0:len(allMedications)-1]
+        
+    
+        warnings = request.POST['warnings']
+        if not warnings:
+            return JsonResponse({'error': 'Warnings not provided'}, status=400)
+
+        prompt = ""
+        
+        prompt+= "Here are all my previous medications "
+        for med in prevMedications:
+            prompt+= f'{med.medicationName}, '
+
+        prompt+= "Here is the medication being added: "
+        prompt+= allMedications.last().medicationName
+        prompt+= "Here are the warnings for taking this medication: "
+        prompt+= warnings
+        prompt+= """If you see any of my previous medications in the warnings that i gave that shouldn't be taken with this added medication, 
+                    for each of these selected previous medication on a new line,  please  say "The added medication (name of it) taken with
+                    the selected previous medication (the medication name) is ... then categorize the risk as low, medium or high depending on the warning semantics
+                    So the format of ur response should be: {Added medication} taken with {selected previous medication} is {low or medium or high} risk. 
+                    If no previous medications are in the warnings, then jsut simply say 'no warnings'. Please structure your response as a multiline string"""
+
+        response = client.chat.completions.create(model="gpt-3.5-turbo",  # You can also use "gpt-4" if you have access
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt}
+            ],
+        temperature=0,
+        max_tokens=100)
+        response_data = response.choices[0].message.content
+        response_json = {'results':response_data}
+        return JsonResponse(response_json)
+
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+        
 
 
 

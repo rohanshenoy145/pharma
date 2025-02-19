@@ -26,6 +26,10 @@
             <label for="aboutBox">About The Medication</label><br>
             <textarea id="aboutBox" rows="4" cols="50" readonly></textarea>
         </div>
+        <div>
+            <label for="warningBox">Warnings about adding this Medication</label><br>
+            <textarea id="warningBox" rows="4" cols="50" readonly></textarea>
+        </div>
     </div>
 
     <h3>Your Medications</h3>
@@ -92,7 +96,10 @@
                 success: function(response){
                     let results = response['results'];
                     let purpose = results[0]['purpose'];
+                    let warnings = results[0]['warnings']
+                    
                     document.getElementById("aboutBox").innerHTML = purpose;
+                    analyzeWarning(warnings)
 
                 },
                 error: function(xhr, status, error) {
@@ -100,6 +107,25 @@
                 }
 
             });
+        }
+
+        function analyzeWarning(warnings){
+            $.ajax({
+                url: '{% url "analyzeWarnings" %}',
+                method: 'POST',
+                data:{
+                    'warnings':warnings[0],
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',  // CSRF token for security
+
+                },
+                success: function(response){
+                    let warning = response['results'];
+                    document.getElementById('warningBox').innerHTML = warning;
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error:", error);  // Log the error if the request fails
+                }
+            })
         }
     </script>
 </body>
